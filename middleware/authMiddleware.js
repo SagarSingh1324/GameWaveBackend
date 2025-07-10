@@ -2,6 +2,21 @@ import jwt from 'jsonwebtoken';
 import asyncHandler from './asyncHandler.js';
 import User from '../models/userModel.js';
 
+const devProtect = asyncHandler(async (req, res, next) => {
+  // Replace with a real user ID from your DB (any non-admin will do for testing)
+  const testUserId = '686cf4657c6100c1d2e83726';
+
+  const user = await User.findById(testUserId).select('-password');
+
+  if (!user) {
+    res.status(401);
+    throw new Error('User not found in devProtect');
+  }
+
+  req.user = user;
+  next();
+});
+
 // Protect routes
 const protect = asyncHandler( async (req, res, next ) => {
     let token;
@@ -41,9 +56,9 @@ const admin = (req, res, next)  => {
     if(req.user && req.user.isAdmin) {
         next();
     } else {
-        req.status(401);
+        res.status(401);
         throw new Error('Not authorised as an Admin');
     }
 };
 
-export { protect, admin };
+export { devProtect, protect, admin };
